@@ -1,36 +1,207 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>江十二的网站</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            /* 全屏背景图 */
-            background-image: url('https://p.qqan.com/up/2022-11/16686582022824888.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            min-height: 100vh;
-            /* 文字居中 */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: "Microsoft Yahei", sans-serif;
-        }
-        .welcome-text {
-            font-size: 3rem;
-            color: white;
-            text-shadow: 0 0 10px rgba(0,0,0,0.8);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSEr 宇宙网页</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+    }
+    body {
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    #canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 0;
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+    }
+    .title {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+    .section {
+      display: none;
+      width: 100%;
+      height: 100vh;
+      padding: 50px;
+    }
+    .section h2 {
+      font-size: 2rem;
+      margin-bottom: 30px;
+    }
+    .section p {
+      font-size: 1.2rem;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .nav {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 2;
+    }
+    .nav-btn {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+    }
+    .nav-btn.active {
+      background: #fff;
+    }
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 2;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <div class="welcome-text">江十二欢迎你</div>
+  <canvas id="canvas"></canvas>
+  <div class="content" id="home">
+    <h1 class="title">JSEr</h1>
+    <p>探索宇宙级的网页设计</p>
+    <div class="nav">
+      <div class="nav-btn" data-section="1"></div>
+      <div class="nav-btn" data-section="2"></div>
+      <div class="nav-btn" data-section="3"></div>
+      <div class="nav-btn" data-section="4"></div>
+    </div>
+  </div>
+
+  <div class="section" id="section1">
+    <h2>板块一：设计理念</h2>
+    <p>我们的设计融合宇宙星空的视觉震撼，以简洁的布局呈现丰富内容。每一个元素都如星尘般错落有致，交互时的点亮效果让你聚焦核心信息。</p>
+    <div class="back-btn">返回首页</div>
+  </div>
+
+  <div class="section" id="section2">
+    <h2>板块二：技术实现</h2>
+    <p>采用 Canvas 技术模拟星空粒子，结合鼠标交互实现黑洞吸附效果。页面切换时的3D转场，让你体验穿梭宇宙的沉浸感。</p>
+    <div class="back-btn">返回首页</div>
+  </div>
+
+  <div class="section" id="section3">
+    <h2>板块三：功能亮点</h2>
+    <p>支持板块点亮、轮播展示、底部导航切换等功能。每个板块内容清晰，整体页面整洁美观，让你在探索中感受设计的乐趣。</p>
+    <div class="back-btn">返回首页</div>
+  </div>
+
+  <div class="section" id="section4">
+    <h2>板块四：关于我们</h2>
+    <p>我们致力于打造如宇宙般浩瀚且精致的网页设计，将技术与艺术融合，为用户带来沉浸式的浏览体验。</p>
+    <div class="back-btn">返回首页</div>
+  </div>
+
+  <script>
+    // Canvas 星空与交互效果
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // 粒子数组
+    const particles = [];
+    const particleCount = 500;
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        radius: Math.random() * 2 + 0.5,
+        color: `hsl(${Math.random() * 360}, 50%, ${Math.random() * 50 + 50}%)`
+      });
+    }
+
+    // 鼠标位置
+    let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
+
+    // 绘制函数
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(particle => {
+        // 黑洞引力效果
+        const dx = mouse.x - particle.x;
+        const dy = mouse.y - particle.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const force = Math.max(0, 1 - distance / 200) * 0.5;
+
+        particle.x += dx * force;
+        particle.y += dy * force;
+
+        // 边界检测
+        if (particle.x < 0 || particle.x > canvas.width || particle.y < 0 || particle.y > canvas.height) {
+          particle.x = Math.random() * canvas.width;
+          particle.y = Math.random() * canvas.height;
+        }
+
+        // 绘制粒子
+        ctx.beginPath();
+        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+        ctx.fillStyle = particle.color;
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    }
+    draw();
+
+    // 板块切换
+    const navBtns = document.querySelectorAll('.nav-btn');
+    const sections = document.querySelectorAll('.section');
+    const home = document.getElementById('home');
+    const backBtns = document.querySelectorAll('.back-btn');
+
+    navBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sectionId = `section${btn.dataset.section}`;
+        home.style.display = 'none';
+        document.getElementById(sectionId).style.display = 'block';
+        navBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    backBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sections.forEach(sec => sec.style.display = 'none');
+        home.style.display = 'flex';
+        navBtns.forEach(b => b.classList.remove('active'));
+      });
+    });
+
+    // 窗口 resize 处理
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+  </script>
 </body>
 </html>
