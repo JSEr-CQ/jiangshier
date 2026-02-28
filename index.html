@@ -15,12 +15,14 @@
       background: #000;
       color: #fff;
       font-family: Arial, sans-serif;
+      perspective: 1000px;
     }
     #canvas {
       position: fixed;
       top: 0;
       left: 0;
       z-index: 0;
+      transform: translateZ(-50px);
     }
     .content {
       position: relative;
@@ -33,20 +35,26 @@
       align-items: center;
       text-align: center;
       padding: 20px;
+      transform: translateZ(0);
     }
     .title {
       font-size: 3rem;
       margin-bottom: 20px;
+      text-shadow: 0 0 15px #fff, 0 0 30px #66ccff;
     }
     .section {
       display: none;
       width: 100%;
       height: 100vh;
       padding: 50px;
+      transform: translateZ(0);
+      background: rgba(0,0,0,0.3);
+      backdrop-filter: blur(5px);
     }
     .section h2 {
       font-size: 2rem;
       margin-bottom: 30px;
+      text-shadow: 0 0 10px #fff, 0 0 20px #66ccff;
     }
     .section p {
       font-size: 1.2rem;
@@ -57,7 +65,7 @@
       position: fixed;
       bottom: 20px;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translateX(-50%) translateZ(0);
       display: flex;
       gap: 10px;
       z-index: 2;
@@ -68,9 +76,13 @@
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.5);
       cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 0 5px rgba(255,255,255,0.5);
     }
     .nav-btn.active {
-      background: #fff;
+      background: #66ccff;
+      box-shadow: 0 0 10px #66ccff, 0 0 20px #66ccff;
+      transform: scale(1.2);
     }
     .back-btn {
       position: fixed;
@@ -78,6 +90,9 @@
       left: 20px;
       z-index: 2;
       cursor: pointer;
+      transform: translateZ(0);
+      color: #66ccff;
+      text-shadow: 0 0 5px #66ccff;
     }
   </style>
 </head>
@@ -93,114 +108,164 @@
       <div class="nav-btn" data-section="4"></div>
     </div>
   </div>
-
   <div class="section" id="section1">
     <h2>板块一：设计理念</h2>
     <p>我们的设计融合宇宙星空的视觉震撼，以简洁的布局呈现丰富内容。每一个元素都如星尘般错落有致，交互时的点亮效果让你聚焦核心信息。</p>
     <div class="back-btn">返回首页</div>
   </div>
-
   <div class="section" id="section2">
     <h2>板块二：技术实现</h2>
     <p>采用 Canvas 技术模拟星空粒子，结合鼠标交互实现黑洞吸附效果。页面切换时的3D转场，让你体验穿梭宇宙的沉浸感。</p>
     <div class="back-btn">返回首页</div>
   </div>
-
   <div class="section" id="section3">
     <h2>板块三：功能亮点</h2>
     <p>支持板块点亮、轮播展示、底部导航切换等功能。每个板块内容清晰，整体页面整洁美观，让你在探索中感受设计的乐趣。</p>
     <div class="back-btn">返回首页</div>
   </div>
-
   <div class="section" id="section4">
     <h2>板块四：关于我们</h2>
-    <p>我们致力于打造如宇宙般浩瀚且精致的网页设计，将技术与艺术融合，为用户带来沉浸式的浏览体验。</p>
+    <p>Telegram官方频道jsehelp为用户带来沉浸式的浏览体验。</p>
     <div class="back-btn">返回首页</div>
   </div>
-
   <script>
-    // Canvas 星空与交互效果
+    // 3D星空Canvas核心
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-
-    // 粒子数组
-    const particles = [];
-    const particleCount = 500;
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        radius: Math.random() * 2 + 0.5,
-        color: `hsl(${Math.random() * 360}, 50%, ${Math.random() * 50 + 50}%)`
-      });
+    const particleCount = 800; // 粒子数量提升，更有宇宙感
+    let particles = [];
+    let mouse = { x: canvas.width/2, y: canvas.height/2, down: false };
+    // 3D粒子属性（增加z轴实现远近）
+    class Particle {
+      constructor() {
+        this.x = Math.random() * canvas.width - canvas.width/2;
+        this.y = Math.random() * canvas.height - canvas.height/2;
+        this.z = Math.random() * 1000 - 500; // z轴正负，实现前后
+        this.radius = Math.random() * 3 + 0.5;
+        this.color = `hsl(${Math.random() * 360}, 80%, ${Math.random() * 40 + 40}%)`;
+        this.speed = Math.random() * 0.3 + 0.1; // 基础移动速度
+      }
+      // 3D投影到2D画布
+      project() {
+        this.scale = 1000 / (1000 + this.z);
+        this.screenX = canvas.width/2 + this.x * this.scale;
+        this.screenY = canvas.height/2 + this.y * this.scale;
+        this.screenR = this.radius * this.scale;
+      }
+      // 鼠标引力+3D旋转
+      update() {
+        // 鼠标引力
+        const dx = mouse.x - (canvas.width/2 + this.x * (1000/(1000+this.z)));
+        const dy = mouse.y - (canvas.height/2 + this.y * (1000/(1000+this.z)));
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        const force = Math.max(0, 1 - distance/300) * 0.8;
+        // 3D空间内的引力移动
+        this.x += dx * force * 0.01 * this.scale;
+        this.y += dy * force * 0.01 * this.scale;
+        // 星空缓慢旋转，增加动态感
+        this.x += Math.sin(this.z * 0.001) * this.speed;
+        this.y += Math.cos(this.z * 0.001) * this.speed;
+        // z轴缓慢移动，实现穿梭感
+        this.z -= this.speed * 2;
+        // 超出边界重置
+        if (this.z < -1000 || this.screenR < 0) {
+          this.x = Math.random() * canvas.width - canvas.width/2;
+          this.y = Math.random() * canvas.height - canvas.height/2;
+          this.z = 1000;
+          this.radius = Math.random() * 3 + 0.5;
+        }
+        this.project();
+      }
+      // 绘制粒子
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.screenX, this.screenY, this.screenR, 0, Math.PI*2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        // 粒子光晕，更有质感
+        ctx.beginPath();
+        ctx.arc(this.screenX, this.screenY, this.screenR*2, 0, Math.PI*2);
+        ctx.fillStyle = `${this.color}33`;
+        ctx.fill();
+      }
     }
-
-    // 鼠标位置
-    let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+    // 初始化粒子
+    function initParticles() {
+      particles = [];
+      for (let i=0; i<particleCount; i++) {
+        particles.push(new Particle());
+        particles[i].project();
+      }
+    }
+    // 点击爆炸效果
+    function createExplosion(x, y) {
+      for (let i=0; i<50; i++) {
+        const p = new Particle();
+        p.x = x - canvas.width/2;
+        p.y = y - canvas.height/2;
+        p.z = Math.random() * 500 - 250;
+        p.radius = Math.random() * 2 + 0.2;
+        p.speed = Math.random() * 2 + 1;
+        particles.push(p);
+        p.project();
+      }
+    }
+    // 动画主函数
+    function animate() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+    // 事件监听
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
     });
+    window.addEventListener('click', (e) => {
+      createExplosion(e.clientX, e.clientY);
+    });
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      initParticles();
+    });
+    // 初始化并启动动画
+    initParticles();
+    animate();
 
-    // 绘制函数
-    function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(particle => {
-        // 黑洞引力效果
-        const dx = mouse.x - particle.x;
-        const dy = mouse.y - particle.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const force = Math.max(0, 1 - distance / 200) * 0.5;
-
-        particle.x += dx * force;
-        particle.y += dy * force;
-
-        // 边界检测
-        if (particle.x < 0 || particle.x > canvas.width || particle.y < 0 || particle.y > canvas.height) {
-          particle.x = Math.random() * canvas.width;
-          particle.y = Math.random() * canvas.height;
-        }
-
-        // 绘制粒子
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        ctx.fillStyle = particle.color;
-        ctx.fill();
-      });
-      requestAnimationFrame(draw);
-    }
-    draw();
-
-    // 板块切换
+    // 原有板块切换功能（保留+优化过渡）
     const navBtns = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.section');
     const home = document.getElementById('home');
     const backBtns = document.querySelectorAll('.back-btn');
-
     navBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const sectionId = `section${btn.dataset.section}`;
         home.style.display = 'none';
-        document.getElementById(sectionId).style.display = 'block';
+        const targetSec = document.getElementById(sectionId);
+        targetSec.style.display = 'block';
+        targetSec.style.opacity = 0;
+        setTimeout(() => { targetSec.style.opacity = 1; }, 100);
         navBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       });
     });
-
     backBtns.forEach(btn => {
       btn.addEventListener('click', () => {
-        sections.forEach(sec => sec.style.display = 'none');
+        sections.forEach(sec => {
+          sec.style.opacity = 0;
+          setTimeout(() => { sec.style.display = 'none'; }, 300);
+        });
         home.style.display = 'flex';
+        home.style.opacity = 0;
+        setTimeout(() => { home.style.opacity = 1; }, 100);
         navBtns.forEach(b => b.classList.remove('active'));
       });
-    });
-
-    // 窗口 resize 处理
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
     });
   </script>
 </body>
