@@ -37,7 +37,7 @@
       padding: 20px;
       transform: translateZ(0);
       opacity: 0;
-      animation: fadeInContent 1s ease 3s forwards;
+      animation: fadeInContent 1s ease 4s forwards;
     }
     .title {
       font-size: 3rem;
@@ -145,47 +145,81 @@
     <div class="back-btn">返回首页</div>
   </div>
   <script>
-    // 标题粒子入场动画核心
+    // 标题粒子入场+散开+鼠标跟随核心
     const titleCanvas = document.getElementById('titleCanvas');
     const titleCtx = titleCanvas.getContext('2d');
     titleCanvas.width = window.innerWidth;
     titleCanvas.height = window.innerHeight;
-    const titleParticleCount = 1500;
+    const titleParticleCount = 1800;
     let titleParticles = [];
     let animateTitle = true;
+    let stage = 1; // 1=汇聚 2=散开 3=鼠标跟随
+    let mouse = { x: titleCanvas.width/2, y: titleCanvas.height/2 };
 
-    // 标题粒子类
+    // 标题粒子类（固定半径，鲜艳颜色）
     class TitleParticle {
       constructor() {
         this.x = Math.random() * titleCanvas.width;
         this.y = Math.random() * titleCanvas.height;
-        this.speed = Math.random() * 3 + 1;
-        this.radius = Math.random() * 2 + 0.5;
-        this.color = `hsl(${Math.random() * 60 + 180}, 80%, 60%)`;
+        this.radius = 2; // 固定粒子大小
+        // 鲜艳高饱和颜色：蓝、粉、紫、青、黄
+        const colors = ['#00ccff', '#ff00cc', '#9900ff', '#00ff99', '#ffff00', '#ff6600'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+        this.speed = Math.random() * 4 + 2; // 移动速度
         this.targetX = 0;
         this.targetY = 0;
+        this.originalX = this.x;
+        this.originalY = this.y;
       }
       update() {
         if (!animateTitle) return;
-        const dx = this.targetX - this.x;
-        const dy = this.targetY - this.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance > 1) {
-          this.x += dx / distance * this.speed;
-          this.y += dy / distance * this.speed;
-        } else {
-          this.x = this.targetX;
-          this.y = this.targetY;
+        // 阶段1：汇聚成JSEr
+        if (stage === 1) {
+          const dx = this.targetX - this.x;
+          const dy = this.targetY - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance > 1) {
+            this.x += dx / distance * this.speed;
+            this.y += dy / distance * this.speed;
+          } else {
+            // 全部汇聚完成后切换到散开阶段
+            if (titleParticles.every(p => Math.sqrt((p.targetX-p.x)**2 + (p.targetY-p.y)**2) < 2)) {
+              setTimeout(() => { stage = 2; }, 800);
+            }
+          }
+        }
+        // 阶段2：从JSEr散开
+        else if (stage === 2) {
+          const dx = this.originalX - this.x;
+          const dy = this.originalY - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance > 1) {
+            this.x += dx / distance * (this.speed/1.5);
+            this.y += dy / distance * (this.speed/1.5);
+          } else {
+            stage = 3;
+          }
+        }
+        // 阶段3：固定形态跟随鼠标
+        else if (stage === 3) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance > 50) {
+            this.x += dx / distance * (this.speed/3);
+            this.y += dy / distance * (this.speed/3);
+          }
         }
       }
       draw() {
         titleCtx.beginPath();
-        titleCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
         titleCtx.fillStyle = this.color;
         titleCtx.fill();
+        // 鲜艳光晕强化
         titleCtx.beginPath();
-        titleCtx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
-        titleCtx.fillStyle = `${this.color}33`;
+        titleCtx.arc(this.x, this.y, this.radius * 3, 0, Math.PI * 2);
+        titleCtx.fillStyle = `${this.color}40`;
         titleCtx.fill();
       }
     }
@@ -195,22 +229,19 @@
       const points = [];
       const centerX = titleCanvas.width / 2;
       const centerY = titleCanvas.height / 2;
-      const fontSize = 180;
+      const fontSize = 200;
 
-      // 绘制文字并获取像素点位
       titleCtx.font = `bold ${fontSize}px Arial`;
       titleCtx.textAlign = 'center';
       titleCtx.textBaseline = 'middle';
       titleCtx.fillText('JSEr', centerX, centerY);
 
-      // 获取文字像素数据
       const imageData = titleCtx.getImageData(0, 0, titleCanvas.width, titleCanvas.height);
       const data = imageData.data;
       titleCtx.clearRect(0, 0, titleCanvas.width, titleCanvas.height);
 
-      // 提取文字像素点位
-      for (let y = 0; y < titleCanvas.height; y += 6) {
-        for (let x = 0; x < titleCanvas.width; x += 6) {
+      for (let y = 0; y < titleCanvas.height; y += 5) {
+        for (let x = 0; x < titleCanvas.width; x += 5) {
           const index = (y * titleCanvas.width + x) * 4;
           if (data[index + 3] > 100) {
             points.push({ x, y });
@@ -243,36 +274,40 @@
       if (animateTitle) requestAnimationFrame(animateTitleParticles);
     }
 
-    // 3秒后隐藏标题粒子画布，显示主内容
+    // 4秒后隐藏标题画布遮罩，和主内容融合
     setTimeout(() => {
-      animateTitle = false;
-      titleCanvas.style.opacity = 0;
-      titleCanvas.style.transition = 'opacity 1s ease';
-      setTimeout(() => {
-        titleCanvas.style.display = 'none';
-      }, 1000);
-    }, 3000);
+      titleCanvas.style.opacity = 0.8;
+      titleCanvas.style.transition = 'opacity 0.8s ease';
+    }, 4000);
+
+    // 鼠标跟随事件
+    window.addEventListener('mousemove', (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    });
 
     // 初始化标题入场动画
     initTitleParticles();
     animateTitleParticles();
 
-    // 原有3D星空Canvas核心
+    // 原有3D星空Canvas核心（保留所有功能）
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const particleCount = 800;
+    const particleCount = 600;
     let particles = [];
-    let mouse = { x: canvas.width/2, y: canvas.height/2, down: false };
+    let starMouse = { x: canvas.width/2, y: canvas.height/2, down: false };
 
     class Particle {
       constructor() {
         this.x = Math.random() * canvas.width - canvas.width/2;
         this.y = Math.random() * canvas.height - canvas.height/2;
         this.z = Math.random() * 1000 - 500;
-        this.radius = Math.random() * 3 + 0.5;
-        this.color = `hsl(${Math.random() * 360}, 80%, ${Math.random() * 40 + 40}%)`;
+        this.radius = Math.random() * 3 + 1;
+        // 星空也用鲜艳颜色
+        const colors = ['#00ccff', '#ff00cc', '#9900ff', '#00ff99', '#ffff00'];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
         this.speed = Math.random() * 0.3 + 0.1;
       }
       project() {
@@ -282,8 +317,8 @@
         this.screenR = this.radius * this.scale;
       }
       update() {
-        const dx = mouse.x - (canvas.width/2 + this.x * (1000/(1000+this.z)));
-        const dy = mouse.y - (canvas.height/2 + this.y * (1000/(1000+this.z)));
+        const dx = starMouse.x - (canvas.width/2 + this.x * (1000/(1000+this.z)));
+        const dy = starMouse.y - (canvas.height/2 + this.y * (1000/(1000+this.z)));
         const distance = Math.sqrt(dx*dx + dy*dy);
         const force = Math.max(0, 1 - distance/300) * 0.8;
         this.x += dx * force * 0.01 * this.scale;
@@ -295,7 +330,7 @@
           this.x = Math.random() * canvas.width - canvas.width/2;
           this.y = Math.random() * canvas.height - canvas.height/2;
           this.z = 1000;
-          this.radius = Math.random() * 3 + 0.5;
+          this.radius = Math.random() * 3 + 1;
         }
         this.project();
       }
@@ -325,7 +360,7 @@
         p.x = x - canvas.width/2;
         p.y = y - canvas.height/2;
         p.z = Math.random() * 500 - 250;
-        p.radius = Math.random() * 2 + 0.2;
+        p.radius = Math.random() * 2 + 0.5;
         p.speed = Math.random() * 2 + 1;
         particles.push(p);
         p.project();
@@ -342,8 +377,8 @@
     }
 
     window.addEventListener('mousemove', (e) => {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
+      starMouse.x = e.clientX;
+      starMouse.y = e.clientY;
     });
     window.addEventListener('click', (e) => {
       createExplosion(e.clientX, e.clientY);
