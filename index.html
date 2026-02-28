@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JSEr 宇宙网页</title>
+  <title>JSEr 网站</title>
   <style>
     * {
       margin: 0;
@@ -36,6 +36,8 @@
       text-align: center;
       padding: 20px;
       transform: translateZ(0);
+      opacity: 0;
+      animation: fadeInContent 1s ease 3s forwards;
     }
     .title {
       font-size: 3rem;
@@ -50,6 +52,8 @@
       transform: translateZ(0);
       background: rgba(0,0,0,0.3);
       backdrop-filter: blur(5px);
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
     .section h2 {
       font-size: 2rem;
@@ -94,13 +98,25 @@
       color: #66ccff;
       text-shadow: 0 0 5px #66ccff;
     }
+    /* 入场动画样式 */
+    @keyframes fadeInContent {
+      to { opacity: 1; }
+    }
+    #titleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      transform: translateZ(0);
+    }
   </style>
 </head>
 <body>
   <canvas id="canvas"></canvas>
+  <canvas id="titleCanvas"></canvas>
   <div class="content" id="home">
     <h1 class="title">JSEr</h1>
-    <p>探索宇宙级的网页设计</p>
+    <p>给用户极致体验</p>
     <div class="nav">
       <div class="nav-btn" data-section="1"></div>
       <div class="nav-btn" data-section="2"></div>
@@ -129,47 +145,152 @@
     <div class="back-btn">返回首页</div>
   </div>
   <script>
-    // 3D星空Canvas核心
+    // 标题粒子入场动画核心
+    const titleCanvas = document.getElementById('titleCanvas');
+    const titleCtx = titleCanvas.getContext('2d');
+    titleCanvas.width = window.innerWidth;
+    titleCanvas.height = window.innerHeight;
+    const titleParticleCount = 1500;
+    let titleParticles = [];
+    let animateTitle = true;
+
+    // 标题粒子类
+    class TitleParticle {
+      constructor() {
+        this.x = Math.random() * titleCanvas.width;
+        this.y = Math.random() * titleCanvas.height;
+        this.speed = Math.random() * 3 + 1;
+        this.radius = Math.random() * 2 + 0.5;
+        this.color = `hsl(${Math.random() * 60 + 180}, 80%, 60%)`;
+        this.targetX = 0;
+        this.targetY = 0;
+      }
+      update() {
+        if (!animateTitle) return;
+        const dx = this.targetX - this.x;
+        const dy = this.targetY - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance > 1) {
+          this.x += dx / distance * this.speed;
+          this.y += dy / distance * this.speed;
+        } else {
+          this.x = this.targetX;
+          this.y = this.targetY;
+        }
+      }
+      draw() {
+        titleCtx.beginPath();
+        titleCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        titleCtx.fillStyle = this.color;
+        titleCtx.fill();
+        titleCtx.beginPath();
+        titleCtx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
+        titleCtx.fillStyle = `${this.color}33`;
+        titleCtx.fill();
+      }
+    }
+
+    // 生成JSEr文字点位
+    function createJSErPoints() {
+      const points = [];
+      const centerX = titleCanvas.width / 2;
+      const centerY = titleCanvas.height / 2;
+      const fontSize = 180;
+
+      // 绘制文字并获取像素点位
+      titleCtx.font = `bold ${fontSize}px Arial`;
+      titleCtx.textAlign = 'center';
+      titleCtx.textBaseline = 'middle';
+      titleCtx.fillText('JSEr', centerX, centerY);
+
+      // 获取文字像素数据
+      const imageData = titleCtx.getImageData(0, 0, titleCanvas.width, titleCanvas.height);
+      const data = imageData.data;
+      titleCtx.clearRect(0, 0, titleCanvas.width, titleCanvas.height);
+
+      // 提取文字像素点位
+      for (let y = 0; y < titleCanvas.height; y += 6) {
+        for (let x = 0; x < titleCanvas.width; x += 6) {
+          const index = (y * titleCanvas.width + x) * 4;
+          if (data[index + 3] > 100) {
+            points.push({ x, y });
+          }
+        }
+      }
+      return points;
+    }
+
+    // 初始化标题粒子
+    function initTitleParticles() {
+      titleParticles = [];
+      const points = createJSErPoints();
+      for (let i = 0; i < titleParticleCount; i++) {
+        const p = new TitleParticle();
+        const randomPoint = points[Math.floor(Math.random() * points.length)];
+        p.targetX = randomPoint.x;
+        p.targetY = randomPoint.y;
+        titleParticles.push(p);
+      }
+    }
+
+    // 标题动画主函数
+    function animateTitleParticles() {
+      titleCtx.clearRect(0, 0, titleCanvas.width, titleCanvas.height);
+      titleParticles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      if (animateTitle) requestAnimationFrame(animateTitleParticles);
+    }
+
+    // 3秒后隐藏标题粒子画布，显示主内容
+    setTimeout(() => {
+      animateTitle = false;
+      titleCanvas.style.opacity = 0;
+      titleCanvas.style.transition = 'opacity 1s ease';
+      setTimeout(() => {
+        titleCanvas.style.display = 'none';
+      }, 1000);
+    }, 3000);
+
+    // 初始化标题入场动画
+    initTitleParticles();
+    animateTitleParticles();
+
+    // 原有3D星空Canvas核心
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    const particleCount = 800; // 粒子数量提升，更有宇宙感
+    const particleCount = 800;
     let particles = [];
     let mouse = { x: canvas.width/2, y: canvas.height/2, down: false };
-    // 3D粒子属性（增加z轴实现远近）
+
     class Particle {
       constructor() {
         this.x = Math.random() * canvas.width - canvas.width/2;
         this.y = Math.random() * canvas.height - canvas.height/2;
-        this.z = Math.random() * 1000 - 500; // z轴正负，实现前后
+        this.z = Math.random() * 1000 - 500;
         this.radius = Math.random() * 3 + 0.5;
         this.color = `hsl(${Math.random() * 360}, 80%, ${Math.random() * 40 + 40}%)`;
-        this.speed = Math.random() * 0.3 + 0.1; // 基础移动速度
+        this.speed = Math.random() * 0.3 + 0.1;
       }
-      // 3D投影到2D画布
       project() {
         this.scale = 1000 / (1000 + this.z);
         this.screenX = canvas.width/2 + this.x * this.scale;
         this.screenY = canvas.height/2 + this.y * this.scale;
         this.screenR = this.radius * this.scale;
       }
-      // 鼠标引力+3D旋转
       update() {
-        // 鼠标引力
         const dx = mouse.x - (canvas.width/2 + this.x * (1000/(1000+this.z)));
         const dy = mouse.y - (canvas.height/2 + this.y * (1000/(1000+this.z)));
         const distance = Math.sqrt(dx*dx + dy*dy);
         const force = Math.max(0, 1 - distance/300) * 0.8;
-        // 3D空间内的引力移动
         this.x += dx * force * 0.01 * this.scale;
         this.y += dy * force * 0.01 * this.scale;
-        // 星空缓慢旋转，增加动态感
         this.x += Math.sin(this.z * 0.001) * this.speed;
         this.y += Math.cos(this.z * 0.001) * this.speed;
-        // z轴缓慢移动，实现穿梭感
         this.z -= this.speed * 2;
-        // 超出边界重置
         if (this.z < -1000 || this.screenR < 0) {
           this.x = Math.random() * canvas.width - canvas.width/2;
           this.y = Math.random() * canvas.height - canvas.height/2;
@@ -178,20 +299,18 @@
         }
         this.project();
       }
-      // 绘制粒子
       draw() {
         ctx.beginPath();
         ctx.arc(this.screenX, this.screenY, this.screenR, 0, Math.PI*2);
         ctx.fillStyle = this.color;
         ctx.fill();
-        // 粒子光晕，更有质感
         ctx.beginPath();
         ctx.arc(this.screenX, this.screenY, this.screenR*2, 0, Math.PI*2);
         ctx.fillStyle = `${this.color}33`;
         ctx.fill();
       }
     }
-    // 初始化粒子
+
     function initParticles() {
       particles = [];
       for (let i=0; i<particleCount; i++) {
@@ -199,7 +318,7 @@
         particles[i].project();
       }
     }
-    // 点击爆炸效果
+
     function createExplosion(x, y) {
       for (let i=0; i<50; i++) {
         const p = new Particle();
@@ -212,7 +331,7 @@
         p.project();
       }
     }
-    // 动画主函数
+
     function animate() {
       ctx.clearRect(0,0,canvas.width,canvas.height);
       particles.forEach(p => {
@@ -221,7 +340,7 @@
       });
       requestAnimationFrame(animate);
     }
-    // 事件监听
+
     window.addEventListener('mousemove', (e) => {
       mouse.x = e.clientX;
       mouse.y = e.clientY;
@@ -232,29 +351,33 @@
     window.addEventListener('resize', () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      titleCanvas.width = window.innerWidth;
+      titleCanvas.height = window.innerHeight;
       initParticles();
+      if (animateTitle) initTitleParticles();
     });
-    // 初始化并启动动画
+
     initParticles();
     animate();
 
-    // 原有板块切换功能（保留+优化过渡）
+    // 原有板块切换功能
     const navBtns = document.querySelectorAll('.nav-btn');
     const sections = document.querySelectorAll('.section');
     const home = document.getElementById('home');
     const backBtns = document.querySelectorAll('.back-btn');
+
     navBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const sectionId = `section${btn.dataset.section}`;
         home.style.display = 'none';
         const targetSec = document.getElementById(sectionId);
         targetSec.style.display = 'block';
-        targetSec.style.opacity = 0;
         setTimeout(() => { targetSec.style.opacity = 1; }, 100);
         navBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
       });
     });
+
     backBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         sections.forEach(sec => {
@@ -262,10 +385,22 @@
           setTimeout(() => { sec.style.display = 'none'; }, 300);
         });
         home.style.display = 'flex';
-        home.style.opacity = 0;
         setTimeout(() => { home.style.opacity = 1; }, 100);
         navBtns.forEach(b => b.classList.remove('active'));
       });
+    });
+
+    // 窗口大小变化适配
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      titleCanvas.width = window.innerWidth;
+      titleCanvas.height = window.innerHeight;
+      initParticles();
+      if (animateTitle) {
+        titleCtx.clearRect(0,0,titleCanvas.width,titleCanvas.height);
+        initTitleParticles();
+      }
     });
   </script>
 </body>
