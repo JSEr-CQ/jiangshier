@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>十佳歌手大赛 · 报名</title>
+<style>
+  :root{
+    --bg:#05070f;
+    --card:rgba(18,24,42,.78);
+    --line:rgba(120,160,255,.22);
+    --txt:#e8ecff;
+    --sub:#8f9ec4;
+    --brand:#4d7dff;
+    --brand2:#7de2ff;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    margin:0;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--txt);background:var(--bg);min-height:100vh;
+    display:flex;align-items:center;justify-content:center;padding:24px 16px;
+    overflow-x:hidden;
+  }
+  .sky{position:fixed;inset:0;z-index:-2;
+    background:
+      radial-gradient(1200px 700px at 15% 0%, rgba(77,125,255,.30), transparent 60%),
+      radial-gradient(900px 600px at 90% 15%, rgba(125,226,255,.16), transparent 60%),
+      radial-gradient(700px 700px at 50% 110%, rgba(150,90,255,.22), transparent 60%),
+      linear-gradient(180deg,#05070f 0%,#070b18 60%,#04060d 100%);
+  }
+  .sky::after{
+    content:"";position:absolute;inset:-20%;
+    background-image:
+      radial-gradient(1.4px 1.4px at 20% 30%, #fff 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 70% 20%, #cfe0ff 50%, transparent 51%),
+      radial-gradient(1.6px 1.6px at 40% 75%, #fff 50%, transparent 51%),
+      radial-gradient(1.1px 1.1px at 85% 65%, #9fc4ff 50%, transparent 51%),
+      radial-gradient(1.3px 1.3px at 12% 82%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 55% 45%, #bfd4ff 50%, transparent 51%),
+      radial-gradient(1.2px 1.2px at 92% 88%, #fff 50%, transparent 51%),
+      radial-gradient(1px 1px at 30% 12%, #dbe8ff 50%, transparent 51%);
+    background-size:600px 600px,700px 700px,520px 520px,800px 800px,640px 640px,560px 560px,720px 720px,480px 480px;
+    opacity:.75;animation:drift 90s linear infinite;
+  }
+  @keyframes drift{from{transform:translate3d(0,0,0)}to{transform:translate3d(-120px,80px,0)}}
+
+  .card{
+    width:100%;max-width:520px;position:relative;
+    background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:22px;
+    padding:26px 22px 22px;
+    box-shadow:0 24px 70px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{
+    width:38px;height:38px;border-radius:12px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--brand),var(--brand2));
+    display:grid;place-items:center;font-weight:700;letter-spacing:.5px;color:#04101f;
+    box-shadow:0 6px 20px rgba(77,125,255,.45);font-size:14px;
+  }
+  .brand h1{margin:0;font-size:18px;letter-spacing:.5px}
+  .brand p{margin:2px 0 0;font-size:12px;color:var(--sub)}
+
+  .desc{margin:16px 0 18px;font-size:13px;line-height:1.7;color:var(--sub)}
+  .desc b{color:#cfe0ff;font-weight:600}
+
+  form{display:grid;gap:14px}
+  .field label{display:block;font-size:13px;margin-bottom:7px;color:#c9d4f2}
+  .field label i{color:#7de2ff;font-style:normal;margin-left:2px}
+  input,textarea{
+    width:100%;font:inherit;font-size:15px;color:var(--txt);
+    background:rgba(8,12,24,.85);border:1px solid var(--line);border-radius:12px;
+    padding:13px 14px;outline:none;transition:border-color .2s, box-shadow .2s;
+    appearance:none;-webkit-appearance:none;
+  }
+  input:focus,textarea:focus{border-color:rgba(125,226,255,.6);box-shadow:0 0 0 3px rgba(77,125,255,.18)}
+  ::placeholder{color:#5d6b90}
+
+  /* 单人 / 合唱 —— 两个大按钮式单选 */
+  .choice{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .choice input{position:absolute;opacity:0;pointer-events:none}
+  .choice label{
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 10px;border-radius:12px;cursor:pointer;
+    background:rgba(8,12,24,.85);border:1px solid var(--line);
+    font-size:15px;color:#c9d4f2;transition:all .18s;
+  }
+  .choice label:active{transform:scale(.985)}
+  .choice input:checked + label{
+    border-color:rgba(125,226,255,.75);
+    background:linear-gradient(135deg,rgba(125,226,255,.18),rgba(77,125,255,.22));
+    color:#fff;box-shadow:0 0 0 3px rgba(77,125,255,.16) inset;
+    font-weight:600;
+  }
+
+  .btn{
+    margin-top:6px;width:100%;border:0;border-radius:14px;cursor:pointer;
+    padding:15px 18px;font-size:16px;font-weight:600;color:#04101f;
+    background:linear-gradient(135deg,var(--brand2),var(--brand));
+    box-shadow:0 12px 30px rgba(77,125,255,.35);
+    transition:transform .12s, box-shadow .2s, opacity .2s;
+  }
+  .btn:active{transform:translateY(1px) scale(.995)}
+  .btn:disabled{opacity:.6;cursor:not-allowed}
+
+  .tip{margin-top:12px;font-size:12px;color:var(--sub);text-align:center;line-height:1.7}
+  .status{margin-top:12px;font-size:13px;text-align:center;min-height:18px}
+  .status.ok{color:#7dffb0}
+  .status.err{color:#ff9b9b}
+
+  @media (max-width:420px){
+    .card{padding:22px 16px 18px;border-radius:18px}
+    .brand h1{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<div class="sky"></div>
+
+<div class="card">
+  <div class="brand">
+    <div class="logo">10</div>
+    <div>
+      <h1>十佳歌手大赛 · 报名</h1>
+      <p>小新.help｜扫码填写，后台统一查看</p>
+    </div>
+  </div>
+
+  <div class="desc">
+    填写真实信息后提交，<b>提交成功即报名完成</b>。比赛相关通知会通过手机联系你，请保持畅通。
+  </div>
+
+  <form id="signupForm" novalidate>
+    <div class="field">
+      <label for="name">姓名<i>*</i></label>
+      <input id="name" name="name" type="text" placeholder="请输入真实姓名" autocomplete="name" required maxlength="20" />
+    </div>
+
+    <div class="field">
+      <label for="phone">手机号<i>*</i></label>
+      <input id="phone" name="phone" type="tel" inputmode="numeric" placeholder="11 位手机号（必填）" autocomplete="tel" required maxlength="11" />
+    </div>
+
+    <div class="field">
+      <label for="cls">班级<i>*</i></label>
+      <input id="cls" name="cls" type="text" placeholder="例如：高三（2）班" required maxlength="30" />
+    </div>
+
+    <div class="field">
+      <label for="song">参赛歌曲<i>*</i></label>
+      <input id="song" name="song" type="text" placeholder="填写你喜欢的、要唱的歌曲名" required maxlength="40" />
+    </div>
+
+    <div class="field">
+      <label>演唱形式<i>*</i></label>
+      <div class="choice">
+        <input id="solo" name="form_type" type="radio" value="单人" />
+        <label for="solo">单人</label>
+        <input id="chorus" name="form_type" type="radio" value="合唱" />
+        <label for="chorus">合唱</label>
+      </div>
+    </div>
+
+    <button class="btn" type="submit" id="submitBtn">提交报名</button>
+    <div class="status" id="status"></div>
+  </form>
+
+  <div class="tip">提交的信息仅用于本次十佳歌手大赛报名</div>
+</div>
+
+<script>
+/* ============================================================
+   配置区：把表单平台（腾讯问卷 / 金山表单 / 金数据等）的分享链接或
+   接口地址填到这里，页面就会真正把数据写进后台。
+   ------------------------------------------------------------
+   FORM_URL       ：指向表单平台的填写链接。填了就整页跳过去填。
+   SUBMIT_ENDPOINT：你自己后端的接口地址（POST JSON）。填了就直接提交。
+   两个都空着时，页面只做校验，不会假装提交成功。
+   ============================================================ */
+var CONFIG = {
+  FORM_URL: "",
+  SUBMIT_ENDPOINT: ""
+};
+
+var form = document.getElementById("signupForm");
+var statusEl = document.getElementById("status");
+var btn = document.getElementById("submitBtn");
+
+function setStatus(msg, cls){
+  statusEl.textContent = msg || "";
+  statusEl.className = "status" + (cls ? " " + cls : "");
+}
+
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  var checked = form.querySelector('input[name="form_type"]:checked');
+  var data = {
+    name: form.name.value.trim(),
+    phone: form.phone.value.trim(),
+    cls: form.cls.value.trim(),
+    song: form.song.value.trim(),
+    form_type: checked ? checked.value : "",
+    time: new Date().toISOString()
+  };
+
+  if (!data.name) { setStatus("请填写姓名", "err"); form.name.focus(); return; }
+  if (!/^1[3-9]\d{9}$/.test(data.phone)) { setStatus("手机号必须填，且为 11 位正确号码", "err"); form.phone.focus(); return; }
+  if (!data.cls) { setStatus("请填写班级", "err"); form.cls.focus(); return; }
+  if (!data.song) { setStatus("请填写参赛歌曲", "err"); form.song.focus(); return; }
+  if (!data.form_type) { setStatus("请选择单人还是合唱", "err"); return; }
+
+  if (CONFIG.FORM_URL) {
+    setStatus("正在跳转到报名表…");
+    window.location.href = CONFIG.FORM_URL;
+    return;
+  }
+
+  if (!CONFIG.SUBMIT_ENDPOINT) {
+    setStatus("表单后台还没接上，暂时不能提交", "err");
+    return;
+  }
+
+  btn.disabled = true;
+  setStatus("提交中…");
+
+  fetch(CONFIG.SUBMIT_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  })
+  .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json().catch(function(){ return {}; }); })
+  .then(function () {
+    form.reset();
+    setStatus("报名成功，我们会尽快联系你", "ok");
+    btn.textContent = "已提交";
+  })
+  .catch(function (err) {
+    setStatus("提交失败：" + err.message + "，请稍后重试", "err");
+    btn.disabled = false;
+  });
+});
+</script>
+</body>
+</html>
