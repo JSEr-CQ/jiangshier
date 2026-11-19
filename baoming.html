@@ -77,6 +77,28 @@
   }
   .alt a{color:#9ec6ff;text-decoration:none;border-bottom:1px dashed rgba(158,198,255,.6)}
 
+  /* 电脑端：问卷桌面版太宽，直接在自家页面里放按钮跳转，避免被裁切 */
+  .cta{
+    display:none;flex:1 1 auto;flex-direction:column;justify-content:center;gap:14px;
+    width:100%;padding:28px 20px;border-radius:16px;
+    background:rgba(18,24,42,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid var(--line);box-shadow:0 24px 70px rgba(0,0,0,.55);
+  }
+  .cta h2{margin:0;font-size:16px;letter-spacing:.5px}
+  .cta ul{margin:0;padding-left:18px;font-size:13.5px;color:var(--sub);line-height:2.0}
+  .btn{
+    display:block;text-align:center;text-decoration:none;
+    border-radius:14px;padding:15px 18px;font-size:16px;font-weight:600;color:#04101f;
+    background:linear-gradient(135deg,var(--brand2),var(--brand));
+    box-shadow:0 12px 30px rgba(77,125,255,.35);
+  }
+  @media (min-width:700px){
+    .frame{display:none}
+    .cta{display:flex}
+    .alt{display:none}
+    .wrap{max-width:620px;justify-content:center}
+  }
+
   @media (max-width:420px){
     .top{padding:14px 14px 8px}
     .top h1{font-size:15.5px}
@@ -105,6 +127,17 @@
     表内 5 项全部必填：姓名 · 手机号 · 班级 · 参赛歌曲 · 演唱形式（单人/合唱）。<br />
     如果上方报名表没有加载出来，<a href="https://wj.qq.com/s2/28747881/kqu1/" target="_blank" rel="noopener">点这里在新窗口打开填写</a>
   </p>
+
+  <div class="cta">
+    <h2>本次报名共 5 项，全部必填</h2>
+    <ul>
+      <li>姓名 · 手机号（11 位，务必填对，用于通知比赛安排）</li>
+      <li>班级（例如：高三（2）班）</li>
+      <li>参赛歌曲（填你要唱的歌名）</li>
+      <li>演唱形式：单人 / 合唱</li>
+    </ul>
+    <a class="btn" href="https://wj.qq.com/s2/28747881/kqu1/" target="_blank" rel="noopener">开始填写报名表</a>
+  </div>
 </main>
 </body>
 </html>
